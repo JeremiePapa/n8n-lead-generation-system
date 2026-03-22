@@ -1,0 +1,474 @@
+{
+  "name": "Lead Gen - Gmaps Web scraping copy",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -432,
+        0
+      ],
+      "id": "21af3fd9-9f4d-4f98-a79c-14275aef3e99",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "=https://maps.googleapis.com/maps/api/place/textsearch/json\n",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "={{ $json.query }}"
+            },
+            {
+              "name": "key",
+              "value": ""
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        208,
+        0
+      ],
+      "id": "d87d8764-8cba-4e8e-ba55-897e91e3a664",
+      "name": "HTTP Request (textsearch)"
+    },
+    {
+      "parameters": {
+        "url": "https://maps.googleapis.com/maps/api/place/details/json",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "place_id",
+              "value": "={{$json.place_id}}"
+            },
+            {
+              "name": "fields",
+              "value": "=place_id,name,formatted_phone_number,website,rating,user_ratings_total"
+            },
+            {
+              "name": "key"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1296,
+        16
+      ],
+      "id": "8fc14053-6715-40fe-b052-28892755ec25",
+      "name": "HTTP Request (details)",
+      "retryOnFail": true,
+      "alwaysOutputData": false,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const seen = new Set();\nconst output = [];\n\nfor (const item of items) {\n  const pid = item.json.place_id;\n  if (!pid) continue;\n\n  if (!seen.has(pid)) {\n    seen.add(pid);\n    output.push(item);\n  }\n}\n\nreturn output;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        624,
+        0
+      ],
+      "id": "e5aa5bc9-3456-43c9-8e02-cfbdf5e52c69",
+      "name": "Code (dedupe)"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1_8NzKCA4WnWyaubr0BWAl-wJ3mVH9qeIoFf6bLiOyDs",
+          "mode": "list",
+          "cachedResultName": "Dental Clinic Leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1_8NzKCA4WnWyaubr0BWAl-wJ3mVH9qeIoFf6bLiOyDs/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1_8NzKCA4WnWyaubr0BWAl-wJ3mVH9qeIoFf6bLiOyDs/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $json.result.name }}\n",
+            "Phone": "={{ $json.result.formatted_phone_number }}\n",
+            "Website/Email": "={{ $json.result.website || \"\" }}\n",
+            "Date and Time": "={{$now.toFormat(\"yyyy-MM-dd HH:mm:ss\")}}\n",
+            "Place ID": "={{ $json.result.place_id }}"
+          },
+          "matchingColumns": [
+            "Website/Email"
+          ],
+          "schema": [
+            {
+              "id": "Place ID",
+              "displayName": "Place ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Date and Time",
+              "displayName": "Date and Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Website/Email",
+              "displayName": "Website/Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2208,
+        16
+      ],
+      "id": "4ce11d64-ec28-42f2-9d99-fe13badb1646",
+      "name": "Google Sheets (append)",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "yemL9FE9BLKHehPn",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# PH Lead Generation Automation\n\nThis workflow collects dental clinic leads across major cities in the Philippines using Google Maps APIs.  \nIt automatically extracts:\n\n- Clinic Name  \n- Phone Number  \n- Website  \n- Place ID (used for deduplication)  \n\nThe automation removes duplicates, enriches data, and saves everything to Google Sheets.\n\n### How it works:\n1. **Query Generator** provides target search terms (e.g., Imus, Bacoor, Dasma, Las Piñas, Muntinlupa).  \n2. **Google Maps Text Search API** fetches matched clinics.  \n3. **Place Details API** retrieves contact information.  \n4. **Dedupe Logic** prevents adding the same clinic twice.  \n5. **Data Storage** appends new leads to Google Sheets.  \n6. **Daily Schedule Trigger** runs this workflow automatically.\n\nFeel free to update search queries anytime to expand coverage and generate more PH-based leads.\n",
+        "height": 512,
+        "width": 752
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        320,
+        -576
+      ],
+      "typeVersion": 1,
+      "id": "1537308d-2ee1-40d0-8b10-789fbae11c0a",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "jsCode": "const services = [\n  \"dentist\",\n  \"dental clinic\",\n  \"orthodontist\",\n  \"pediatric dentist\"\n];\n\nconst locations = [\n  \"imus cavite\",\n  \"bacoor cavite\",\n  \"dasmarinas cavite\",\n  \"las pinas\",\n  \"muntinlupa\",\n  \"zapote\",\n  \"alabang\",\n  \"molino cavite\"\n];\n\nconst modifiers = [\n  \"\",\n  \"near me\",\n  \"24 hours\",\n  \"emergency\",\n  \"family\"\n];\n\nconst queries = [];\n\nfor (const s of services) {\n  for (const l of locations) {\n    for (const m of modifiers) {\n      queries.push(`${s} ${l} ${m}`.trim());\n    }\n  }\n}\n\nreturn queries.map(q => ({ json: { query: q }}));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -208,
+        0
+      ],
+      "id": "7f39f102-a8b1-4614-9ec6-aea080319302",
+      "name": "Generate Dynamic Queries"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Collect all queries from previous node\nconst allQueries = items.map(i => i.json.query);\n\n// Safety check\nif (!allQueries.length) {\n  throw new Error(\"No queries received in Daily Query Rotation\");\n}\n\n// Rotate queries based on day of week (0–6)\nconst dayIndex = new Date().getDay();\n\n// Split queries into 7 buckets\nconst bucketSize = Math.ceil(allQueries.length / 7);\nconst start = dayIndex * bucketSize;\nconst end = start + bucketSize;\n\n// Select today's queries\nconst todaysQueries = allQueries.slice(start, end);\n\n// Output in n8n item format\nreturn todaysQueries.map(q => ({\n  json: { query: q }\n}));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        16,
+        0
+      ],
+      "id": "4f03ee8f-6a52-4f90-96b6-1a4035527db6",
+      "name": "Daily Query Rotation"
+    },
+    {
+      "parameters": {
+        "jsCode": "const output = [];\n\nfor (const item of items) {\n  // Handle all possible n8n response shapes\n  const results =\n    item.json.results ||\n    item.json.body?.results ||\n    item.json.data?.results ||\n    [];\n\n  // Safety: skip if no results\n  if (!Array.isArray(results)) continue;\n\n  for (const r of results) {\n    if (!r.place_id) continue;\n\n    output.push({\n      json: {\n        name: r.name || null,\n        address: r.formatted_address || null,\n        place_id: r.place_id,\n        rating: r.rating ?? null\n      }\n    });\n  }\n}\n\nreturn output;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "c55dcb65-9e35-4992-90d8-ee43a8dfe6e5",
+      "name": "Code (extract + flatten place_id)"
+    },
+    {
+      "parameters": {
+        "jsCode": "const LIMIT = 150;\nreturn items.slice(0, LIMIT);\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        832,
+        0
+      ],
+      "id": "72eba2f3-64dc-4440-aace-4791446dab9d",
+      "name": "Code - Daily Limit"
+    },
+    {
+      "parameters": {
+        "batchSize": 5,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1056,
+        0
+      ],
+      "id": "0b0e1f09-2704-46ac-9f39-e77570678f8d",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1488,
+        16
+      ],
+      "id": "67a9ae53-56ef-410e-85e4-2f51c75d9065",
+      "name": "Wait",
+      "webhookId": "e1e43c7a-e7e7-4ed7-b7c5-ab3b477f6dce"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.filter(i => {\n  const r =\n    i.json.result ||\n    i.json.body?.result ||\n    i.json.data?.result;\n\n  if (!r) return false;\n\n  const phone =\n    r.formatted_phone_number ||\n    r.international_phone_number ||\n    \"\";\n\n  const website = r.website || \"\";\n\n  const reviews =\n    typeof r.user_ratings_total === \"number\"\n      ? r.user_ratings_total\n      : null;\n\n  // Only drop if BOTH contact methods are missing\n  if (!phone && !website) return false;\n\n  // Only drop if reviews exist AND are very high (older clinics)\n  if (reviews !== null && reviews > 80) return false;\n\n  return true;\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1696,
+        16
+      ],
+      "id": "ad4edfc4-6906-4c35-956e-f99bf70c819a",
+      "name": "Code - Quality Filter"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.filter(i => {\n  const r =\n    i.json.result ||\n    i.json.body?.result ||\n    i.json.data?.result;\n\n  if (!r) return false;\n\n  // Require name\n  if (!r.name || r.name.trim() === \"\") return false;\n\n  // Require phone\n  if (!r.formatted_phone_number || r.formatted_phone_number.trim() === \"\")\n    return false;\n\n  return true;\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1936,
+        16
+      ],
+      "id": "1ad12106-99a1-423b-a0f2-44a9ae17b3a1",
+      "name": "Code - Gatekeeper"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Generate Dynamic Queries",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request (textsearch)": {
+      "main": [
+        [
+          {
+            "node": "Code (extract + flatten place_id)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request (details)": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code (dedupe)": {
+      "main": [
+        [
+          {
+            "node": "Code - Daily Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Dynamic Queries": {
+      "main": [
+        [
+          {
+            "node": "Daily Query Rotation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Daily Query Rotation": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request (textsearch)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code (extract + flatten place_id)": {
+      "main": [
+        [
+          {
+            "node": "Code (dedupe)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Daily Limit": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "HTTP Request (details)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Code - Quality Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets (append)": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Quality Filter": {
+      "main": [
+        [
+          {
+            "node": "Code - Gatekeeper",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Gatekeeper": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets (append)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "89f3a6b5-5a53-41c5-acf6-84d6dd24fb78",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b357545ff4e47d3dd70b762234ca1bb87a73857ebc65dbe1f676cc3974053349"
+  },
+  "id": "YkKJgjE2nZZajRon",
+  "tags": []
+}
